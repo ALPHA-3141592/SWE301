@@ -1,0 +1,367 @@
+labTrans2
+<html>
+<head>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: #1a1a1a;
+      font-family: Arial, sans-serif;
+    }
+
+    .atm-machine {
+      width: 600px;
+      height: 800px;
+      background: linear-gradient(145deg, #2c2c2c, #404040);
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 40px rgba(0,0,0,0.5);
+      position: relative;
+    }
+
+    .screen {
+      width: 500px;
+      height: 300px;
+      background: #000;
+      margin: 20px auto;
+      border-radius: 10px;
+      padding: 20px;
+      color: #0f0;
+      font-size: 24px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-slot {
+      width: 300px;
+      height: 50px;
+      background: #222;
+      margin: 20px auto;
+      border-radius: 5px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-slot::after {
+      content: '';
+      position: absolute;
+      width: 90%;
+      height: 2px;
+      background: #444;
+      top: 50%;
+      left: 5%;
+    }
+
+    .card {
+      width: 250px;
+      height: 40px;
+      background: linear-gradient(45deg, #444, #666);
+      position: absolute;
+      top: 5px;
+      right: -260px;
+      border-radius: 5px;
+      transition: transform 0.5s;
+    }
+
+    .insert-animation {
+      animation: insertCard 1s forwards;
+    }
+
+    @keyframes insertCard {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(-540px);
+      }
+    }
+
+    .screen-text {
+      text-shadow: 0 0 10px #0f0;
+    }
+
+    .blink {
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      50% {
+        opacity: 0;
+      }
+    }
+
+    .pin-input {
+      font-size: 36px;
+      letter-spacing: 10px;
+      color: #0f0;
+      border: none;
+      background: none;
+      text-align: center;
+      outline: none;
+      caret-color: transparent;
+    }
+
+    .transaction-grid {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+    }
+
+    .transaction-column {
+      width: 45%;
+    }
+
+    .transaction-btn {
+      display: block;
+      background: #333;
+      color: #0f0;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 18px;
+      text-decoration: none;
+      transition: background 0.3s;
+    }
+
+    .transaction-btn:hover {
+      background: #444;
+    }
+
+    .bottom-btn {
+      margin-top: 20px;
+    }
+
+    .receipt {
+      font-size: 16px;
+      background: #fff;
+      color: #000;
+      padding: 20px;
+      border: 2px dashed #000;
+      border-radius: 10px;
+      width: 300px;
+      text-align: left;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+<div class="atm-machine">
+  <div class="screen">
+    <div class="screen-text" id="screen-text">
+      Welcome to SecureBank ATM
+      <br><br>
+      Please Insert Your Card
+      <br><br>
+      <span class="blink">▶</span>
+    </div>
+  </div>
+  <div class="card-slot">
+    <div class="card" id="card"></div>
+  </div>
+</div>
+
+<script>
+let currentPin = "1234"; // Initial PIN
+let balance = 1000; // Initial balance in euros
+let withdrawalAmount = 0; // Amount to withdraw
+
+document.addEventListener('click', function() {
+  const cardElement = document.getElementById('card');
+  if (!cardElement.classList.contains('insert-animation')) {
+    cardElement.classList.add('insert-animation');
+  }
+
+  setTimeout(() => {
+    document.getElementById('screen-text').innerHTML = `
+      Reading Card...
+      <br><br>
+      Please Wait
+      <br><br>
+      <span class="blink">▶</span>
+    `;
+  }, 1000);
+
+  setTimeout(() => {
+    document.getElementById('screen-text').innerHTML = `
+      Enter Your PIN
+      <br><br>
+      <input type="password" id="pin-input" class="pin-input" maxlength="4" placeholder="____" autofocus />
+      <br><br>
+      <button onclick="verifyPin()" style="
+    padding: 10px 20px;
+    background-color: black;
+    color: #0f0;
+    text-shadow: 0 0 10px #0f0;
+    border: 2px solid #0f0;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+">Enter</button>
+    `;
+  }, 3000);
+}, { once: true });
+
+function verifyPin() {
+  const pin = document.getElementById('pin-input').value;
+  if (pin === currentPin) {
+    showTransactionInterface();
+  } else {
+    document.getElementById('screen-text').innerHTML = `
+      Incorrect PIN
+      <br><br>
+      Try Again
+      <br><br>
+      <button onclick="reloadPinPrompt()">Retry</button>
+    `;
+  }
+}
+
+function reloadPinPrompt() {
+  document.getElementById('screen-text').innerHTML = `
+    Enter Your PIN
+    <br><br>
+    <input type="password" id="pin-input" class="pin-input" maxlength="4" placeholder="____" autofocus />
+    <br><br>
+    <button onclick="verifyPin()">Enter</button>
+  `;
+}
+
+function showTransactionInterface() {
+  const names = ["Alice", "Bob", "Charlie", "Diana", "Edward"];
+  const randomName = names[Math.floor(Math.random() * names.length)];
+  const now = new Date();
+  const date = now.toLocaleDateString();
+  const time = now.toLocaleTimeString();
+  
+  document.getElementById('screen-text').innerHTML = `
+    Welcome to SecureBank, ${randomName}!
+    
+    <div class="transaction-grid">
+      <div class="transaction-column">
+        <a class="transaction-btn" onclick="withdrawalOptions()">Withdrawal</a>
+        <a class="transaction-btn">Deposit Money</a>
+        <a class="transaction-btn">Transfer Funds</a>
+      </div>
+      <div class="transaction-column">
+        <a class="transaction-btn">Paying Bills</a>
+        <a class="transaction-btn">Show Balance</a>
+        <a class="transaction-btn">Mini Statements</a>
+      </div>
+    </div>
+    <div class="bottom-btn">
+      <a class="transaction-btn" onclick="changePin()">Change PIN</a>
+    </div>
+  `;
+}
+
+function withdrawalOptions() {
+  document.getElementById('screen-text').innerHTML = `
+    Choose Withdrawal Amount
+    <br><br>
+    <div class="transaction-grid">
+      <div class="transaction-column">
+        <a class="transaction-btn" onclick="setWithdrawalAmount(50)">€50</a>
+        <a class="transaction-btn" onclick="setWithdrawalAmount(100)">€100</a>
+      </div>
+      <div class="transaction-column">
+        <a class="transaction-btn" onclick="setWithdrawalAmount(200)">€200</a>
+        <a class="transaction-btn" onclick="setWithdrawalAmount(300)">€300</a>
+      </div>
+    </div>
+    <div class="bottom-btn">
+      <a class="transaction-btn" onclick="showTransactionInterface()">Go Back</a>
+      <br><br>
+      <label>Enter Amount:</label>
+      <input type="number" id="custom-amount" min="1" step="1" placeholder="€" />
+      <button onclick="setWithdrawalAmount()">Choose</button>
+    </div>
+  `;
+}
+
+function setWithdrawalAmount(amount = null) {
+  withdrawalAmount = amount || parseInt(document.getElementById('custom-amount').value);
+  if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
+    alert("Please enter a valid amount.");
+    return;
+  }
+  if (withdrawalAmount > balance) {
+    alert("Insufficient balance. Please choose a smaller amount.");
+    withdrawalOptions();
+  } else {
+    confirmReceiptOption();
+  }
+}
+
+function confirmReceiptOption() {
+  document.getElementById('screen-text').innerHTML = `
+    Withdrawal Amount: €${withdrawalAmount}
+    <br><br>
+    Would you like a receipt?
+    <br><br>
+    <button onclick="completeTransaction(true)">Yes</button>
+    <button onclick="completeTransaction(false)">No</button>
+  `;
+} 
+function completeTransaction(printReceipt) {
+  balance -= withdrawalAmount;
+
+  if (printReceipt) {
+    showReceipt();
+  } else {
+    finishTransaction();
+  }
+}
+
+function showReceipt() {
+  const now = new Date();
+  const date = now.toLocaleDateString();
+  const time = now.toLocaleTimeString();
+  const receipt = `
+    <div class="receipt">
+      <h2>SecureBank</h2>
+      <p>Branch: Eastwood Alley Branch</p>
+      <p>Date: ${date}</p>
+      <p>Time: ${time}</p>
+      <p>Amount Withdrawn: €${withdrawalAmount}</p>
+      <p>Currency: EUR</p>
+      <p>Balance: €${balance}</p>
+    </div>
+    <br><br>
+    <button onclick="finishTransaction()">Please Retrieve Your Card</button>
+  `;
+  document.getElementById('screen-text').innerHTML = receipt;
+}
+
+function finishTransaction() {
+  document.getElementById('screen-text').innerHTML = `
+    Please Retrieve Your Card
+    <br><br>
+    Dispensing €${withdrawalAmount}...
+  `;
+
+  setTimeout(() => {
+    document.getElementById('screen-text').innerHTML = `
+      Transaction Complete. Click the screen to restart.
+    `;
+    
+    // Add an event listener to reload the page when clicking the screen
+    document.getElementById('screen-text').addEventListener('click', function() {
+      location.reload();
+    });
+  }, 5000); // Display message after dispensing delay
+}
+
+</script>
+</body>
+</html>
+
